@@ -1,39 +1,98 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
+import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
+function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    if (isLoading) return;
 
-  if (!loaded) {
-    return null;
+    if (!user) {
+      // Redirect to login if not authenticated
+      router.replace('/');
+    } else {
+      // Redirect to dashboard if authenticated
+      router.replace('/screens/ParentDashboard');
+    }
+  }, [user, isLoading]);
+
+  if (isLoading) {
+    return null; // Or a loading screen
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+        },
+        headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+        headerLeft: ({ canGoBack }) => 
+          canGoBack ? (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginLeft: 16 }}
+            >
+              <MaterialIcons
+                name="arrow-back"
+                size={24}
+                color={colorScheme === 'dark' ? '#fff' : '#000'}
+              />
+            </TouchableOpacity>
+          ) : null,
+      }}
+    >
+      <Stack.Screen
+        name="index"
+        options={{
+          title: 'FocusTrack AI',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="screens/ParentDashboard"
+        options={{
+          title: 'Dashboard',
+        }}
+      />
+      <Stack.Screen
+        name="screens/Settings"
+        options={{
+          title: 'Settings',
+        }}
+      />
+      <Stack.Screen
+        name="screens/History"
+        options={{
+          title: 'Study History',
+        }}
+      />
+      <Stack.Screen
+        name="screens/SessionManager"
+        options={{
+          title: 'Study Sessions',
+        }}
+      />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
