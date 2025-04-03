@@ -9,12 +9,14 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from './context/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -26,7 +28,7 @@ export default function LoginScreen() {
     try {
       const success = await login(email, password);
       if (success) {
-        // Navigation is handled by the layout
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }

@@ -206,7 +206,7 @@ const ParentDashboard = () => {
 
   const renderStatusCard = () => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>Current Study Session</Text>
+      <Text style={[styles.cardTitle, styles.headerStyle]}>Current Study Session</Text>
       <View style={styles.statusGrid}>
         <View style={styles.statusItem}>
           <MaterialIcons name="timer" size={24} color="#4CAF50" />
@@ -236,7 +236,7 @@ const ParentDashboard = () => {
 
   const renderGoalsCard = () => (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>Study Goals</Text>
+      <Text style={[styles.cardTitle, styles.headerStyle]}>Study Goals</Text>
       <View style={styles.goalsContainer}>
         <View style={styles.goalItem}>
           <Text style={styles.goalLabel}>Daily Goal</Text>
@@ -265,7 +265,7 @@ const ParentDashboard = () => {
   const renderAlertsCard = () => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>Recent Alerts</Text>
+        <Text style={[styles.cardTitle, styles.headerStyle]}>Recent Alerts</Text>
         <TouchableOpacity onPress={() => setData(prev => prev ? { ...prev, recentAlerts: [] } : null)}>
           <MaterialIcons name="clear-all" size={24} color="#666666" />
         </TouchableOpacity>
@@ -340,6 +340,24 @@ const ParentDashboard = () => {
           {renderAlertsCard()}
         </>
       )}
+
+      {/* <View style={styles.buttonContainer}>
+        <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push('/volunteer')}
+        >
+            <MaterialIcons name="volunteer-activism" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Volunteer Activities</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push('/parking')}
+        >
+            <MaterialIcons name="local-parking" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Parking</Text>
+        </TouchableOpacity>
+      </View> */}
     </ScrollView>
   );
 };
@@ -424,6 +442,11 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  headerStyle: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333333',
   },
@@ -519,6 +542,25 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#666666',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  button: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: '#4CAF50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
 

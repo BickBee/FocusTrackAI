@@ -52,7 +52,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
@@ -61,37 +61,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate checking for stored auth token
-    const checkAuth = async () => {
-      // In a real app, this would check for a valid token
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser = MOCK_USERS.find(
-        u => u.email === email && u.password === password
-      );
-
-      if (mockUser) {
-        const { password: _, ...userWithoutPassword } = mockUser;
-        setUser(userWithoutPassword);
-        return true;
-      }
-      return false;
-    } finally {
-      setIsLoading(false);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Mock login - in a real app, this would make an API call
+    if (email === 'parent@demo.com' && password === 'demo123') {
+      setUser({
+        id: '1',
+        email: 'parent@demo.com',
+        name: 'Demo Parent',
+        children: MOCK_USERS[0].children,
+      });
+      return true;
     }
+    return false;
   };
 
   const logout = () => {
@@ -99,7 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
+      login,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );
