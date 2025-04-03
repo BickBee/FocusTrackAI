@@ -5,7 +5,7 @@ import random
 import numpy as np
 from datetime import datetime, timedelta
 
-global show_study_bot, show_mental_bot, current_study_recommendation, current_mental_recommendation
+global show_study_bot, show_mental_bot, show_book_recs, current_study_recommendation, current_mental_recommendation, current_book_recommendations
 
 model = YOLO("yolov8n.pt")
 video_capture = cv2.VideoCapture(0)
@@ -87,6 +87,10 @@ mental_panel_x = 0
 mental_panel_y = 0
 mental_panel_width = 400
 mental_panel_height = 200
+rec_x = 0
+rec_y = 0
+book_recs_width = 400
+book_recs_height = 300
 
 study_questions = [
     "What's the best way to improve my focus?",
@@ -130,10 +134,20 @@ mental_health_responses = [
     "Before each session, do 2 minutes of mindful breathing."
 ]
 
+book_recommendations = [
+    ("Deep Work", 4.7),
+    ("Atomic Habits", 4.8),
+    ("The Power of Now", 4.5),
+    ("Digital Minimalism", 4.6),
+    ("Thinking, Fast and Slow", 4.4)
+]
+
 show_study_bot = False
 show_mental_bot = False
+show_book_recs = False
 current_study_recommendation = ""
 current_mental_recommendation = ""
+current_book_recommendations = []
 
 last_bot_update_time = time.time()
 bot_update_interval = 60
@@ -218,6 +232,10 @@ def get_mental_health_recommendation(total_study_time, distraction_logs, focus_t
     )
     return question, response
 
+def get_book_recommendation():
+    recommendations = random.sample(book_recommendations, 3)#(0, len())
+    return recommendations
+
 while video_capture.isOpened():
     ret, frame = video_capture.read()
     if not ret:
@@ -285,10 +303,10 @@ while video_capture.isOpened():
     cv2.rectangle(display_frame, (0, 0), (display_width, 30), UI_BLUE, -1)
     title_text = "Study Focus Monitor"
     title_size = cv2.getTextSize(title_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
-    title_x = (display_width - title_size[0]) // 2
+    title_x = (display_width - title_size[0]) // 3
     cv2.putText(display_frame, title_text, (title_x, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.7, UI_WHITE, 2)
 
-    instructions = "Press 'q' to exit | 'r' to reset | 's'/'m' for bots | 'n' for new advice"
+    instructions = "Press 'q' to exit | 'r' to reset | 's'/'m' for bots | 'n' for new advice | 'b' for book recs"
     instr_size = cv2.getTextSize(instructions, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
     instr_x = display_width - instr_size[0] - 10
     cv2.putText(display_frame, instructions, (instr_x, 22),
@@ -611,6 +629,45 @@ while video_capture.isOpened():
                 cv2.putText(display_frame, current_line,
                             (mental_panel_x + 10, mental_panel_y + 50 + (i + line_num) * line_spacing),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, UI_WHITE, 1)
+                
+    
+    if show_book_recs:
+        overlay = display_frame.copy()
+        book_recs_width = 400
+        book_recs_height = 300
+        alpha = 0.75  # Transparency for overlay
+        rec_x = int((display_width - book_recs_width)/2)
+        rec_y = int((display_height - book_recs_height)/2)
+
+        # Draw main break recommendation box
+        cv2.rectangle(overlay, (rec_x, rec_y), (rec_x + book_recs_width, rec_y + book_recs_height), UI_DARK_GREEN, -1)
+        cv2.putText(overlay, "Need a break?", (rec_x + 20, rec_y + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, UI_WHITE, 2)
+        cv2.putText(overlay, "Based on your study logs,", (rec_x + 20, rec_y + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, UI_WHITE, 1)
+        cv2.putText(overlay, "we recommend:", (rec_x + 20, rec_y + 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, UI_WHITE, 1)
+
+         # Close button
+        cv2.rectangle(display_frame,
+                      (rec_x + book_recs_width - 30, rec_y),
+                      (rec_x + book_recs_width, rec_y + 30),
+                      (100, 0, 0), -1)
+        cv2.putText(display_frame, "X",
+                    (rec_x + book_recs_width - 20, rec_y + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, UI_WHITE, 2)
+
+        # Draw book recommendations
+        book_start_y = rec_y + 140
+        book_spacing = 35
+        for i, (title, rating) in enumerate(current_book_recommendations):
+            cv2.putText(overlay, f"{title} ({rating}/5)", (rec_x + 20, book_start_y + i * book_spacing),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, UI_WHITE, 1)
+
+        # Draw "Take me to Shelved™" button
+        button_y = rec_y + book_recs_height - 40
+        cv2.rectangle(overlay, (rec_x + 50, button_y), (rec_x + book_recs_width - 50, button_y + 30), UI_WHITE, -1)
+        cv2.putText(overlay, "Take me to Shelved!", (rec_x + 60, button_y + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, UI_BLACK, 1)
+
+        cv2.addWeighted(overlay, alpha, display_frame, 1 - alpha, 0, display_frame)
 
     # -------------------- TOGGLE BUTTONS --------------------
     button_width = 160
@@ -685,6 +742,7 @@ while video_capture.isOpened():
             show_mental_bot = False
             current_study_recommendation = ""
             current_mental_recommendation = ""
+            current_book_recommendations = []
             last_bot_update_time = time.time()
         elif key == ord('s'):
             show_study_bot = not show_study_bot
@@ -702,11 +760,15 @@ while video_capture.isOpened():
                 mq, mr = get_mental_health_recommendation(total_study_time, distraction_logs, focus_time)
                 current_mental_recommendation = f"Q: {mq}\nA: {mr}"
                 last_bot_update_time = current_time
+        elif key == ord('b'):
+            show_book_recs = not show_book_recs
+            if show_book_recs:
+                current_book_recommendations = get_book_recommendation()
 
     # -------------------- MOUSE HANDLING --------------------
     if cv2.getWindowProperty("Study Focus Monitor", cv2.WND_PROP_VISIBLE) >= 1:
         def mouse_callback(event, x, y, flags, param):
-            global show_study_bot, show_mental_bot, current_study_recommendation, current_mental_recommendation
+            global show_study_bot, show_mental_bot, show_book_recs, current_study_recommendation, current_mental_recommendation
             global last_bot_update_time, input_active, user_question
 
             if event == cv2.EVENT_LBUTTONDOWN:
@@ -767,6 +829,12 @@ while video_capture.isOpened():
                         mq, mr = get_mental_health_recommendation(total_study_time, distraction_logs, focus_time)
                         current_mental_recommendation = f"Q: {mq}\nA: {mr}"
                         last_bot_update_time = time.time()
+                
+                # ---------------- Book Rec Buttons ----------------
+                if show_book_recs:
+                    if (rec_x + book_recs_width - 30 <= x <= rec_x + book_recs_width and rec_y <= y <= rec_y + 30):
+                        print("HERE!!!!!!!!")
+                        show_book_recs = False
 
         cv2.setMouseCallback("Study Focus Monitor", mouse_callback)
 
