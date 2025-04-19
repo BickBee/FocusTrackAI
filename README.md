@@ -2,6 +2,8 @@
 
 An object‑detection system that helps students stay focused and lets parents track study habits in real time—without invading privacy
 
+📽️ **Video Demo**: [Watch it here](https://youtu.be/7-PRQMcsGw4)
+
 ## Features 🎯
 
 - 🎥 **Real‑time desk monitoring** using YOLOv8 to recognize laptops, books, phones, coffee cups and empty desks  
@@ -57,9 +59,9 @@ When you're ready, run `npm run reset-project` to move the starter code to the *
 
 Built by:
 * Nicholas Lee
-* Omar Elserwi
+* Omar Elserwi
 * Tianyi Zhan
 * Glenn Joseph
-* Wyett Zheng
+* Wyett Zeng
 
-⚠️ **Warning**: This was created as a group project demo and is not a complete, production‑ready product.
+⚠️ **Warning**: This was created as a group project demo and is not a complete, production‑ready product.  
