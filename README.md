@@ -62,4 +62,4 @@ Built by:
 * Glenn Joseph
 * Wyett Zheng
 
-⚠️ **Warning**: Not all the features listed here have been completed.  
+⚠️ **Warning**: This was created as a group project demo and is not a complete, production‑ready product.
